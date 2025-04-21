@@ -25,7 +25,9 @@
         <th>Принял</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody>
+      <!-- Записи будут динамически добавлены сюда -->
+    </tbody>
   </table>
 
   <!-- Подключаем Firebase через модули -->
@@ -81,7 +83,8 @@
     async function renderTable() {
       const data = await getSchedule();
       const tbody = document.querySelector("#dutyTable tbody");
-      tbody.innerHTML = "";
+      tbody.innerHTML = ""; // Очистить таблицу перед рендерингом
+
       data.forEach(doc => {
         tbody.appendChild(createRow(doc));
       });
