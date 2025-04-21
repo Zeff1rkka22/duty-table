@@ -60,12 +60,6 @@
     margin-top: 20px;
   }
 
-  /* Контейнер для таблицы с прокруткой */
-  #tableContainer {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* Добавляет плавную прокрутку на устройствах с iOS */
-  }
-
   /* Стили для футера */
   #footer {
     margin-top: 20px;
@@ -77,27 +71,36 @@
 
   /* Адаптация для мобильных устройств */
   @media (max-width: 600px) {
-    table, th, td {
-      display: block;
+    table {
       width: 100%;
+      overflow-x: auto;
+      display: block;
     }
 
     th, td {
+      display: inline-block;
+      width: 100%;
       text-align: left;
       padding: 12px 15px;
+      border: 1px solid #444; /* Добавляем границу, чтобы было видно разделение строк */
     }
 
-    /* Убираем flex на мобильных устройствах, чтобы текст не обрезался */
+    th {
+      background-color: #444; /* Меняем цвет фона для заголовков */
+    }
+
+    td {
+      background-color: #333; /* Меняем фон для ячеек */
+    }
+
+    /* Сделать таблицу горизонтальной */
     #footer {
       display: block;
       text-align: center;
     }
 
-    /* Обеспечиваем горизонтальную прокрутку на мобильных устройствах */
-    #tableContainer {
-      overflow-x: auto;
-    }
   }
+
   </style>
 </head>
 <body>
@@ -105,23 +108,20 @@
   <button id="signInButton">Войти через Google</button>
   <div id="userInfo"></div>
 
-  <!-- Контейнер для таблицы с прокруткой -->
-  <div id="tableContainer">
-    <table id="dutyTable">
-      <thead>
-        <tr>
-          <th>День</th>
-          <th>ФИО</th>
-          <th>Группа</th>
-          <th>Сдал(а)</th>
-          <th>Принял(а)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Записи будут динамически добавлены сюда -->
-      </tbody>
-    </table>
-  </div>
+  <table id="dutyTable">
+    <thead>
+      <tr>
+        <th>День</th>
+        <th>ФИО</th>
+        <th>Группа</th>
+        <th>Сдал(а)</th>
+        <th>Принял(а)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Записи будут динамически добавлены сюда -->
+    </tbody>
+  </table>
 
   <!-- Текст внизу страницы -->
   <div id="footer">
