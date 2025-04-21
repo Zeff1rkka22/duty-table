@@ -124,7 +124,7 @@
         const td = document.createElement("td");
         const input = document.createElement("input");
         input.value = doc[field] || "";
-        input.disabled = auth.currentUser?.email !== allowedEmail; // Отключаем редактирование, если не админ
+        input.disabled = !allowedEmails.includes(auth.currentUser?.email); // Отключаем редактирование, если не админ
 
         input.onchange = () => {
           doc[field] = input.value;
