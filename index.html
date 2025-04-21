@@ -59,30 +59,74 @@
   #userInfo {
     margin-top: 20px;
   }
-</style>
-  
+
+  /* Контейнер для таблицы с прокруткой на мобильных */
+  #tableContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Добавляет плавную прокрутку на устройствах с iOS */
+  }
+
+  /* Стили для футера */
+  #footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    color: white;
+  }
+
+  /* Адаптация для мобильных устройств */
+  @media (max-width: 600px) {
+    table, th, td {
+      display: block;
+      width: 100%;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 15px;
+    }
+
+    /* Добавляем горизонтальную прокрутку */
+    #tableContainer {
+      overflow-x: auto;
+    }
+
+    /* Убираем flex на мобильных устройствах, чтобы текст не обрезался */
+    #footer {
+      display: block;
+      text-align: center;
+    }
+  }
+  </style>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
   <button id="signInButton">Войти через Google</button>
   <div id="userInfo"></div>
-  <table id="dutyTable">
-    <thead>
-      <tr>
-        <th>День</th>
-        <th>ФИО</th>
-        <th>Группа</th>
-        <th>Сдал(а)</th>
-        <th>Принял(а)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Записи будут динамически добавлены сюда -->
-    </tbody>
-  </table>
 
-<div id="footer">
-    <p>Командир: Р.Р. Старниченко</p>
+  <!-- Контейнер для таблицы с прокруткой -->
+  <div id="tableContainer">
+    <table id="dutyTable">
+      <thead>
+        <tr>
+          <th>День</th>
+          <th>ФИО</th>
+          <th>Группа</th>
+          <th>Сдал(а)</th>
+          <th>Принял(а)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Записи будут динамически добавлены сюда -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Текст внизу страницы -->
+  <div id="footer">
+    <span>Командир</span>
+    <span>Р.Р. Старниченко</span>
   </div>
 
   <!-- Подключаем Firebase через модули -->
