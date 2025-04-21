@@ -1,36 +1,93 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Расписание дежурств</title>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Расписание дежурств</title>
+  <style>
     body { font-family: sans-serif; padding: 20px; background: #f8f9fa; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f1f1f1; }
     input { width: 100%; border: none; text-align: center; background: transparent; }
     input:focus { background: #eef; outline: none; }
-</style>
+  </style>
 </head>
 <body>
-<h1>Расписание дежурств</h1>
-<table id="dutyTable">
+  <h1>Расписание дежурств</h1>
+  <table id="dutyTable">
     <thead>
-    <tr>
+      <tr>
         <th>День</th>
         <th>ФИО</th>
         <th>Группа</th>
         <th>Сдал</th>
         <th>Принял</th>
-    </tr>
+      </tr>
     </thead>
     <tbody></tbody>
-</table>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
-<script src="config.js"></script>
-<script src="db.js"></script>
-<script src="main.js"></script>
+  </table>
+
+  <!-- Подключаем Firebase через модули -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+    import { getFirestore, collection, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcR5RnGuTCMUXuGTbVqdj_1pcJ1n77kTk",
+      authDomain: "duty-table-c6d39.firebaseapp.com",
+      projectId: "duty-table-c6d39",
+      storageBucket: "duty-table-c6d39.firebasestorage.app",
+      messagingSenderId: "903907682283",
+      appId: "1:903907682283:web:7977a2450b47260b3b5bae"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Получаем данные из Firestore
+    async function getSchedule() {
+      const snapshot = await getDocs(collection(db, "schedule"));
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+
+    // Обновляем запись в Firestore
+    async function updateSchedule(id, data) {
+      const scheduleRef = doc(db, "schedule", id);
+      await updateDoc(scheduleRef, data);
+    }
+
+    // Генерируем строки таблицы
+    function createRow(doc) {
+      const tr = document.createElement("tr");
+      const fields = ["day", "name", "group", "gave", "received"];
+
+      fields.forEach(field => {
+        const td = document.createElement("td");
+        const input = document.createElement("input");
+        input.value = doc[field] || "";
+        input.onchange = () => {
+          doc[field] = input.value;
+          updateSchedule(doc.id, doc);
+        };
+        td.appendChild(input);
+        tr.appendChild(td);
+      });
+
+      return tr;
+    }
+
+    // Рендерим таблицу
+    async function renderTable() {
+      const data = await getSchedule();
+      const tbody = document.querySelector("#dutyTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(doc => {
+        tbody.appendChild(createRow(doc));
+      });
+    }
+
+    renderTable();
+  </script>
 </body>
 </html>
