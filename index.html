@@ -101,7 +101,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const allowedEmail = "numartem228@gmail.com"; // Почта администратора
+    const allowedEmails = ["numartem228@gmail.com", "secondadmin@example.com"]; // Почта администратора
 
     // Получаем данные из Firestore
     async function getSchedule() {
