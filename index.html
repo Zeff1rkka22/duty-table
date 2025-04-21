@@ -155,7 +155,7 @@
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        document.getElementById("userInfo").innerHTML = `Привет, ${user.displayName}!`;
+        document.getElementById("userInfo").innerHTML = Привет, ${user.displayName}!;
 
         // Перерисовать таблицу после входа
         renderTable();
