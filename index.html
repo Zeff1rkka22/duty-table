@@ -101,7 +101,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const allowedEmails = ["numartem228@gmail.com", "starrok886@gmail.com"]; // Почта администратора
+    const allowedEmail = "starrok886@gmail.com"; // Почта администратора
 
     // Получаем данные из Firestore
     async function getSchedule() {
@@ -124,7 +124,7 @@
         const td = document.createElement("td");
         const input = document.createElement("input");
         input.value = doc[field] || "";
-        input.disabled = !allowedEmails.includes(auth.currentUser?.email); // Отключаем редактирование, если не админ
+        input.disabled = auth.currentUser?.email !== allowedEmail; // Отключаем редактирование, если не админ
 
         input.onchange = () => {
           doc[field] = input.value;
@@ -155,7 +155,7 @@
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        document.getElementById("userInfo").innerHTML = `Привет, ${user.displayName}!`;
+        document.getElementById("userInfo").innerHTML = Привет, ${user.displayName}!;
 
         // Перерисовать таблицу после входа
         renderTable();
