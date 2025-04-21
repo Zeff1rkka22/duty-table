@@ -11,10 +11,15 @@
     th { background-color: #f1f1f1; }
     input { width: 100%; border: none; text-align: center; background: transparent; }
     input:focus { background: #eef; outline: none; }
+    #signInButton { margin: 20px 0; padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+    #signInButton:hover { background: #0056b3; }
+    #userInfo { margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
+  <button id="signInButton">Войти через Google</button>
+  <div id="userInfo"></div>
   <table id="dutyTable">
     <thead>
       <tr>
@@ -34,6 +39,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
     import { getFirestore, collection, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBcR5RnGuTCMUXuGTbVqdj_1pcJ1n77kTk",
@@ -44,8 +50,12 @@
       appId: "1:903907682283:web:7977a2450b47260b3b5bae"
     };
 
+    // Инициализация Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const allowedEmail = "numartem228@gmail.com"; // Почта администратора
 
     // Получаем данные из Firestore
     async function getSchedule() {
@@ -68,10 +78,13 @@
         const td = document.createElement("td");
         const input = document.createElement("input");
         input.value = doc[field] || "";
+        input.disabled = auth.currentUser?.email !== allowedEmail; // Отключаем редактирование, если не админ
+
         input.onchange = () => {
           doc[field] = input.value;
           updateSchedule(doc.id, doc);
         };
+
         td.appendChild(input);
         tr.appendChild(td);
       });
@@ -90,7 +103,46 @@
       });
     }
 
-    renderTable();
+    // Обработчик входа через Google
+    document.getElementById("signInButton").onclick = async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        document.getElementById("userInfo").innerHTML = `Привет, ${user.displayName}!`;
+
+        // Перерисовать таблицу после входа
+        renderTable();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    // Обработчик выхода из системы
+    function signOutUser() {
+      signOut(auth).then(() => {
+        document.getElementById("userInfo").innerHTML = "";
+        renderTable(); // Перерисовать таблицу
+      }).catch(console.error);
+    }
+
+    // Подписка на состояние авторизации
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        // Если пользователь авторизован, показываем кнопку выхода
+        const signOutButton = document.createElement("button");
+        signOutButton.innerText = "Выйти";
+        signOutButton.onclick = signOutUser;
+        document.getElementById("userInfo").appendChild(signOutButton);
+
+        renderTable();
+      } else {
+        // Если пользователь не авторизован, показываем кнопку входа
+        const signInButton = document.getElementById("signInButton");
+        signInButton.style.display = "block";
+      }
+    });
+
   </script>
 </body>
 </html>
