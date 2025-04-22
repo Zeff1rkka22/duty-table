@@ -5,95 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
   <title>Расписание дежурств</title>
   <style>
-  body {
-    font-family: sans-serif;
-    padding: 20px;
-    background-color: #121212; /* Черный фон */
-    color: white; /* Белый текст */
-  }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #121212;
+      color: white;
+    }
 
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 20px;
-    background: #333; /* Темно-серый фон таблицы */
-  }
-
-  th, td {
-    border: 1px solid #444; /* Темные границы */
-    padding: 8px;
-    text-align: center;
-    color: white; /* Белый текст */
-  }
-
-  th {
-    background-color: #555; /* Темно-серый фон для заголовков */
-  }
-
-  input {
-    width: 100%;
-    border: none;
-    text-align: center;
-    background: transparent;
-    color: white; /* Белый текст в инпутах */
-  }
-
-  input:focus {
-    background: #444; /* Темный фон при фокусе */
-    outline: none;
-  }
-
-  #signInButton {
-    margin: 20px 0;
-    padding: 10px 20px;
-    background: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-  #signInButton:hover {
-    background: #0056b3;
-  }
-
-  #userInfo {
-    margin-top: 20px;
-  }
-
-  /* Стили для футера */
-  #footer {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-    color: white;
-  }
-
-  /* Адаптация для мобильных устройств (удалены ограничения на ширину) */
-  @media (max-width: 600px) {
     table {
+      border-collapse: collapse;
       width: 100%;
-      overflow-x: auto;
-      display: block;
+      margin-top: 20px;
+      background: #333;
     }
 
     th, td {
-      padding: 12px 15px;
+      border: 1px solid #444;
+      padding: 8px;
+      text-align: center;
+      color: white;
     }
 
     th {
-      background-color: #444;
+      background-color: #555;
     }
 
-    td {
-      background-color: #333;
+    input[type="text"] {
+      width: 100%;
+      border: none;
+      text-align: center;
+      background: transparent;
+      color: white;
+    }
+
+    input[type="text"]:focus {
+      background: #444;
+      outline: none;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.5);
+      cursor: pointer;
+    }
+
+    #signInButton {
+      margin: 20px 0;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #signInButton:hover {
+      background: #0056b3;
+    }
+
+    #userInfo {
+      margin-top: 20px;
     }
 
     #footer {
-      display: block;
-      text-align: center;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
+      color: white;
     }
-  }
+
+    @media (max-width: 600px) {
+      table {
+        display: block;
+        overflow-x: auto;
+        width: 100%;
+      }
+
+      #footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
   </style>
 </head>
 <body>
@@ -116,14 +108,11 @@
     </tbody>
   </table>
 
-  <!-- Текст внизу страницы -->
   <div id="footer">
     <span>Командир</span>
     <span>Р.Р. Старниченко</span>
   </div>
 
-
-  <!-- Подключаем Firebase через модули -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
     import { getFirestore, collection, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
@@ -138,99 +127,102 @@
       appId: "1:903907682283:web:7977a2450b47260b3b5bae"
     };
 
-    // Инициализация Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const allowedEmail = "starrok886@gmail.com"; // Почта администратора
+    const allowedEmail = "starrok886@gmail.com";
 
-    // Получаем данные из Firestore
     async function getSchedule() {
       const snapshot = await getDocs(collection(db, "schedule"));
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
-    // Обновляем запись в Firestore
     async function updateSchedule(id, data) {
       const scheduleRef = doc(db, "schedule", id);
       await updateDoc(scheduleRef, data);
     }
 
-    // Генерируем строки таблицы
-    function createRow(doc) {
+    function createRow(docData) {
       const tr = document.createElement("tr");
-      const fields = ["day", "name", "group", "gave", "received"];
+      const fields = ["day", "name", "group"];
 
       fields.forEach(field => {
         const td = document.createElement("td");
         const input = document.createElement("input");
-        input.value = doc[field] || "";
-        input.disabled = auth.currentUser?.email !== allowedEmail; // Отключаем редактирование, если не админ
+        input.type = "text";
+        input.value = docData[field] || "";
+        input.disabled = auth.currentUser?.email !== allowedEmail;
 
         input.onchange = () => {
-          doc[field] = input.value;
-          updateSchedule(doc.id, doc);
+          docData[field] = input.value;
+          updateSchedule(docData.id, docData);
         };
 
         td.appendChild(input);
         tr.appendChild(td);
       });
 
+      // Чекбоксы
+      ["gave", "received"].forEach(field => {
+        const td = document.createElement("td");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = !!docData[field];
+        checkbox.disabled = auth.currentUser?.email !== allowedEmail;
+
+        checkbox.onchange = () => {
+          docData[field] = checkbox.checked;
+          updateSchedule(docData.id, docData);
+        };
+
+        td.appendChild(checkbox);
+        tr.appendChild(td);
+      });
+
       return tr;
     }
 
-    // Рендерим таблицу
     async function renderTable() {
       const data = await getSchedule();
       const tbody = document.querySelector("#dutyTable tbody");
-      tbody.innerHTML = ""; // Очистить таблицу перед рендерингом
+      tbody.innerHTML = "";
 
       data.forEach(doc => {
         tbody.appendChild(createRow(doc));
       });
     }
 
-    // Обработчик входа через Google
     document.getElementById("signInButton").onclick = async () => {
       try {
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         document.getElementById("userInfo").innerHTML = `Привет, ${user.displayName}!`;
-
-        // Перерисовать таблицу после входа
         renderTable();
       } catch (error) {
         console.error(error);
       }
     };
 
-    // Обработчик выхода из системы
     function signOutUser() {
       signOut(auth).then(() => {
         document.getElementById("userInfo").innerHTML = "";
-        renderTable(); // Перерисовать таблицу
+        renderTable();
       }).catch(console.error);
     }
 
-    // Подписка на состояние авторизации
     onAuthStateChanged(auth, user => {
       if (user) {
-        // Если пользователь авторизован, показываем кнопку выхода
         const signOutButton = document.createElement("button");
         signOutButton.innerText = "Выйти";
         signOutButton.onclick = signOutUser;
         document.getElementById("userInfo").appendChild(signOutButton);
-
         renderTable();
       } else {
-        // Если пользователь не авторизован, показываем кнопку входа
-        const signInButton = document.getElementById("signInButton");
-        signInButton.style.display = "block";
+        document.getElementById("signInButton").style.display = "block";
       }
     });
-
   </script>
 </body>
 </html>
