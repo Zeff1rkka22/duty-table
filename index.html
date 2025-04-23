@@ -131,7 +131,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const allowedEmail = "starrok886@gmail.com";
+    const allowedEmails = ["starrok886@gmail.com", "numartem228@gmail.com"];
 
     async function getSchedule() {
       const snapshot = await getDocs(collection(db, "schedule"));
@@ -152,7 +152,7 @@
         const input = document.createElement("input");
         input.type = "text";
         input.value = docData[field] || "";
-        input.disabled = auth.currentUser?.email !== allowedEmail;
+        input.disabled = !allowedEmails.includes(auth.currentUser?.email);
 
         input.onchange = () => {
           docData[field] = input.value;
@@ -164,12 +164,12 @@
       });
 
       // Чекбоксы
-      ["gave", "received"].forEach(field => {
+      ["received", "gave"].forEach(field => {
         const td = document.createElement("td");
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = !!docData[field];
-        checkbox.disabled = auth.currentUser?.email !== allowedEmail;
+        checkbox.disabled = !allowedEmails.includes(auth.currentUser?.email);
 
         checkbox.onchange = () => {
           docData[field] = checkbox.checked;
