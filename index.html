@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Расписание дежурств</title>
   <style>
     body {
@@ -23,7 +23,6 @@
       border: 1px solid #444;
       padding: 8px;
       text-align: center;
-      color: white;
     }
 
     th {
@@ -61,10 +60,6 @@
       background: #0056b3;
     }
 
-    #userInfo {
-      margin-top: 20px;
-    }
-
     #adminControls {
       margin-top: 10px;
     }
@@ -88,21 +83,6 @@
       display: flex;
       justify-content: space-between;
       font-size: 16px;
-      color: white;
-    }
-
-    @media (max-width: 600px) {
-      table {
-        display: block;
-        overflow-x: auto;
-        width: 100%;
-      }
-
-      #footer {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-      }
     }
   </style>
 </head>
@@ -126,9 +106,7 @@
         <th>Сдал(а)</th>
       </tr>
     </thead>
-    <tbody>
-      <!-- Записи будут динамически добавлены сюда -->
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <div id="footer">
@@ -145,7 +123,7 @@
       apiKey: "AIzaSyBcR5RnGuTCMUXuGTbVqdj_1pcJ1n77kTk",
       authDomain: "duty-table-c6d39.firebaseapp.com",
       projectId: "duty-table-c6d39",
-      storageBucket: "duty-table-c6d39.firebasestorage.app",
+      storageBucket: "duty-table-c6d39.appspot.com",
       messagingSenderId: "903907682283",
       appId: "1:903907682283:web:7977a2450b47260b3b5bae"
     };
@@ -163,8 +141,8 @@
     }
 
     async function updateSchedule(id, data) {
-      const scheduleRef = doc(db, "schedule", id);
-      await updateDoc(scheduleRef, data);
+      const ref = doc(db, "schedule", id);
+      await updateDoc(ref, data);
     }
 
     function createRow(docData) {
@@ -208,10 +186,8 @@
 
     async function renderTable() {
       const data = await getSchedule();
-      originalData = JSON.parse(JSON.stringify(data));
       const tbody = document.querySelector("#dutyTable tbody");
       tbody.innerHTML = "";
-
       data.forEach(doc => {
         tbody.appendChild(createRow(doc));
       });
@@ -223,29 +199,35 @@
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         document.getElementById("userInfo").innerHTML = `Привет, ${user.displayName}!`;
+        if (allowedEmails.includes(user.email)) {
+          document.getElementById("adminControls").style.display = "block";
+        }
         renderTable();
-      } catch (error) {
-        console.error(error);
+      } catch (e) {
+        console.error(e);
       }
     };
-
-    function signOutUser() {
-      signOut(auth).then(() => {
-        document.getElementById("userInfo").innerHTML = "";
-        document.getElementById("adminControls").style.display = "none";
-        renderTable();
-      }).catch(console.error);
-    }
 
     document.getElementById("clearButton").onclick = async () => {
       if (!auth.currentUser || !allowedEmails.includes(auth.currentUser.email)) return;
 
+      const confirmed = confirm("Вы уверены, что хотите очистить все данные, кроме дней?");
+      if (!confirmed) return;
+
       const data = await getSchedule();
+      originalData = JSON.parse(JSON.stringify(data)); // сохраняем перед очисткой
+
       for (const item of data) {
-        const cleared = { ...item, name: "", group: "", received: false, gave: false };
-        delete cleared.id;
-        await updateSchedule(item.id, cleared);
+        await updateSchedule(item.id, {
+          ...item,
+          name: "",
+          group: "",
+          received: false,
+          gave: false
+        });
       }
+
+      alert("Таблица очищена!");
       renderTable();
     };
 
@@ -253,26 +235,33 @@
       if (!auth.currentUser || !allowedEmails.includes(auth.currentUser.email)) return;
 
       for (const item of originalData) {
-        const dataToRestore = { ...item };
-        delete dataToRestore.id;
-        await updateSchedule(item.id, dataToRestore);
+        const restored = { ...item };
+        delete restored.id;
+        await updateSchedule(item.id, restored);
       }
+
+      alert("Данные восстановлены!");
       renderTable();
     };
 
     onAuthStateChanged(auth, user => {
       if (user) {
-        const signOutButton = document.createElement("button");
-        signOutButton.innerText = "Выйти";
-        signOutButton.onclick = signOutUser;
-        document.getElementById("userInfo").appendChild(signOutButton);
-        renderTable();
+        const signOutBtn = document.createElement("button");
+        signOutBtn.innerText = "Выйти";
+        signOutBtn.onclick = () => {
+          signOut(auth).then(() => {
+            document.getElementById("userInfo").innerHTML = "";
+            document.getElementById("adminControls").style.display = "none";
+            renderTable();
+          });
+        };
+        document.getElementById("userInfo").appendChild(signOutBtn);
 
         if (allowedEmails.includes(user.email)) {
           document.getElementById("adminControls").style.display = "block";
         }
-      } else {
-        document.getElementById("signInButton").style.display = "block";
+
+        renderTable();
       }
     });
   </script>
