@@ -86,9 +86,9 @@
     }
   </style>
 
-  <!-- Подключаем библиотеку jsFile для экспорта в Word -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.20.0/docxtemplater.min.js"></script>
+  <!-- Подключаем библиотеки для работы с Word -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.3/pizzip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.20.0/docxtemplater.min.js"></script>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
@@ -221,22 +221,23 @@
         doc.gave ? "✔" : "✘"
       ]);
 
+      // Форматируем таблицу в HTML для добавления в Word
       const docxData = `
-        <table style="width:100%">
-          <tr>
-            <th>День</th>
-            <th>ФИО</th>
-            <th>Группа</th>
-            <th>Принял(а)</th>
-            <th>Сдал(а)</th>
+        <table style="width:100%; border: 1px solid #000; border-collapse: collapse; font-family: Arial, sans-serif;">
+          <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #000; padding: 5px;">День</th>
+            <th style="border: 1px solid #000; padding: 5px;">ФИО</th>
+            <th style="border: 1px solid #000; padding: 5px;">Группа</th>
+            <th style="border: 1px solid #000; padding: 5px;">Принял(а)</th>
+            <th style="border: 1px solid #000; padding: 5px;">Сдал(а)</th>
           </tr>
           ${rows.map(row => `
             <tr>
-              <td>${row[0]}</td>
-              <td>${row[1]}</td>
-              <td>${row[2]}</td>
-              <td>${row[3]}</td>
-              <td>${row[4]}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${row[0]}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${row[1]}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${row[2]}</td>
+              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${row[3]}</td>
+              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${row[4]}</td>
             </tr>
           `).join('')}
         </table>
@@ -250,30 +251,9 @@
 
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "duty_schedule.docx";
+      link.download = "schedule.docx";
       link.click();
     };
-
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        const signOutBtn = document.createElement("button");
-        signOutBtn.innerText = "Выйти";
-        signOutBtn.onclick = () => {
-          signOut(auth).then(() => {
-            document.getElementById("userInfo").innerHTML = "";
-            document.getElementById("adminControls").style.display = "none";
-            renderTable();
-          });
-        };
-        document.getElementById("userInfo").appendChild(signOutBtn);
-
-        if (allowedEmails.includes(user.email)) {
-          document.getElementById("adminControls").style.display = "block";
-        }
-
-        renderTable();
-      }
-    });
   </script>
 </body>
 </html>
