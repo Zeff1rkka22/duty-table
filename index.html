@@ -88,6 +88,9 @@
 
   <!-- Подключаем библиотеку jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Подключаем плагин jsPDF для авто-таблиц -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.21/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
@@ -214,12 +217,10 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      doc.autoTable({
-        html: '#dutyTable',
-        startY: 20, // Расстояние от верхнего края страницы
-        theme: 'grid'
-      });
+      // Используем метод autoTable для добавления таблицы в PDF
+      doc.autoTable({ html: '#dutyTable' });
 
+      // Сохраняем PDF файл
       doc.save('duty_schedule.pdf'); // Имя файла
     };
 
