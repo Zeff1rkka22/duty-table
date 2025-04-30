@@ -86,8 +86,8 @@
     }
   </style>
 
-  <!-- Подключаем последнюю стабильную версию html2canvas -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@0.4.1/dist/html2canvas.min.js"></script>
+  <!-- Подключаем более стабильную версию html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
@@ -211,8 +211,7 @@
 
     // Функция для скачивания таблицы как изображения
     document.getElementById("downloadImageButton").onclick = () => {
-      html2canvas(document.getElementById("dutyTable")).then(canvas => {
-        // Скачиваем изображение
+      html2canvas(document.getElementById("dutyTable")).then(function(canvas) {
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/png");
         link.download = "duty_schedule.png"; // Имя файла
