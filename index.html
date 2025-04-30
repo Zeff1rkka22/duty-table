@@ -209,12 +209,16 @@
       }
     };
 
+    // Функция для скачивания таблицы как изображения
     document.getElementById("downloadImageButton").onclick = () => {
-      html2canvas(document.getElementById("dutyTable")).then(canvas => {
+      html2canvas(document.getElementById("dutyTable"), { useCORS: true }).then(canvas => {
+        // Скачиваем изображение
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/png");
         link.download = "duty_schedule.png"; // Имя файла
         link.click();
+      }).catch(err => {
+        console.error("Ошибка при захвате таблицы:", err);
       });
     };
 
