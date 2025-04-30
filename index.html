@@ -86,11 +86,9 @@
     }
   </style>
 
-  <!-- Подключаем библиотеку jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- Подключаем плагин jsPDF для авто-таблиц -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.21/jspdf.plugin.autotable.min.js"></script>
+  <!-- Подключаем библиотеку jsFile для экспорта в Word -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.20.0/docxtemplater.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.3/pizzip.min.js"></script>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
@@ -98,7 +96,7 @@
   <div id="userInfo"></div>
 
   <div id="adminControls" style="display: none;">
-    <button id="downloadPDFButton">Скачать таблицу как PDF</button>
+    <button id="downloadWordButton">Скачать таблицу как Word</button>
   </div>
 
   <table id="dutyTable">
@@ -212,16 +210,48 @@
       }
     };
 
-    // Функция для скачивания таблицы как PDF
-    document.getElementById("downloadPDFButton").onclick = () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+    // Функция для скачивания таблицы как Word
+    document.getElementById("downloadWordButton").onclick = async () => {
+      const data = await getSchedule();
+      const rows = data.map(doc => [
+        doc.day,
+        doc.name,
+        doc.group,
+        doc.received ? "✔" : "✘",
+        doc.gave ? "✔" : "✘"
+      ]);
 
-      // Используем метод autoTable для добавления таблицы в PDF
-      doc.autoTable({ html: '#dutyTable' });
+      const docxData = `
+        <table style="width:100%">
+          <tr>
+            <th>День</th>
+            <th>ФИО</th>
+            <th>Группа</th>
+            <th>Принял(а)</th>
+            <th>Сдал(а)</th>
+          </tr>
+          ${rows.map(row => `
+            <tr>
+              <td>${row[0]}</td>
+              <td>${row[1]}</td>
+              <td>${row[2]}</td>
+              <td>${row[3]}</td>
+              <td>${row[4]}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
 
-      // Сохраняем PDF файл
-      doc.save('duty_schedule.pdf'); // Имя файла
+      const zip = new PizZip();
+      zip.file("schedule.docx", docxData);
+
+      const docx = new Docxtemplater(zip);
+      const blob = docx.getZip().generate({ type: "blob" });
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "duty_schedule.docx";
+      link.click();
     };
 
     onAuthStateChanged(auth, user => {
