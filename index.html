@@ -92,8 +92,7 @@
   <div id="userInfo"></div>
 
   <div id="adminControls" style="display: none;">
-    <button id="clearButton">Очистить</button>
-    <button id="restoreButton">Вернуть</button>
+    <button id="downloadButton">Скачать таблицу (Word/Excel)</button>
   </div>
 
   <table id="dutyTable">
@@ -208,40 +207,48 @@
       }
     };
 
-    document.getElementById("clearButton").onclick = async () => {
-      if (!auth.currentUser || !allowedEmails.includes(auth.currentUser.email)) return;
+    document.getElementById("downloadButton").onclick = () => {
+      const table = document.getElementById("dutyTable");
+      const rows = table.rows;
+      const type = prompt("Выберите формат для скачивания (word/excel)").toLowerCase();
 
-      const confirmed = confirm("Вы уверены, что хотите очистить все данные, кроме дней?");
-      if (!confirmed) return;
+      if (type === "excel") {
+        const data = [];
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const cells = row.getElementsByTagName("td");
+          const rowData = [];
+          for (let j = 0; j < cells.length; j++) {
+            rowData.push(cells[j].innerText);
+          }
+          data.push(rowData.join("\t"));
+        }
 
-      const data = await getSchedule();
-      originalData = JSON.parse(JSON.stringify(data)); // сохраняем перед очисткой
+        const blob = new Blob([data.join("\n")], { type: "application/vnd.ms-excel" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "schedule.xls";
+        link.click();
+      } else if (type === "word") {
+        const data = [];
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const cells = row.getElementsByTagName("td");
+          const rowData = [];
+          for (let j = 0; j < cells.length; j++) {
+            rowData.push(cells[j].innerText);
+          }
+          data.push(rowData.join("\t"));
+        }
 
-      for (const item of data) {
-        await updateSchedule(item.id, {
-          ...item,
-          name: "",
-          group: "",
-          received: false,
-          gave: false
-        });
+        const blob = new Blob([`<html><body><table>${data.join("<tr><td>")}</table></body></html>`], { type: "application/msword" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "schedule.doc";
+        link.click();
+      } else {
+        alert("Неверный формат");
       }
-
-      alert("Таблица очищена!");
-      renderTable();
-    };
-
-    document.getElementById("restoreButton").onclick = async () => {
-      if (!auth.currentUser || !allowedEmails.includes(auth.currentUser.email)) return;
-
-      for (const item of originalData) {
-        const restored = { ...item };
-        delete restored.id;
-        await updateSchedule(item.id, restored);
-      }
-
-      alert("Данные восстановлены!");
-      renderTable();
     };
 
     onAuthStateChanged(auth, user => {
