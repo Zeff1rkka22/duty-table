@@ -86,8 +86,8 @@
     }
   </style>
 
-  <!-- Подключаем более стабильную версию html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+  <!-- Подключаем библиотеку jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
@@ -95,7 +95,7 @@
   <div id="userInfo"></div>
 
   <div id="adminControls" style="display: none;">
-    <button id="downloadImageButton">Скачать таблицу как изображение</button>
+    <button id="downloadPDFButton">Скачать таблицу как PDF</button>
   </div>
 
   <table id="dutyTable">
@@ -209,16 +209,18 @@
       }
     };
 
-    // Функция для скачивания таблицы как изображения
-    document.getElementById("downloadImageButton").onclick = () => {
-      html2canvas(document.getElementById("dutyTable")).then(function(canvas) {
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = "duty_schedule.png"; // Имя файла
-        link.click();
-      }).catch(err => {
-        console.error("Ошибка при захвате таблицы:", err);
+    // Функция для скачивания таблицы как PDF
+    document.getElementById("downloadPDFButton").onclick = () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.autoTable({
+        html: '#dutyTable',
+        startY: 20, // Расстояние от верхнего края страницы
+        theme: 'grid'
       });
+
+      doc.save('duty_schedule.pdf'); // Имя файла
     };
 
     onAuthStateChanged(auth, user => {
