@@ -65,6 +65,24 @@
       margin-top: 20px;
     }
 
+    #adminControls {
+      margin-top: 10px;
+    }
+
+    #adminControls button {
+      margin-right: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #28a745;
+      border: none;
+      color: white;
+    }
+
+    #adminControls button:hover {
+      background: #218838;
+    }
+
     #footer {
       margin-top: 20px;
       display: flex;
@@ -92,6 +110,11 @@
   <h1>Расписание дежурств</h1>
   <button id="signInButton">Войти через Google</button>
   <div id="userInfo"></div>
+
+  <div id="adminControls" style="display: none;">
+    <button id="clearButton">Очистить</button>
+    <button id="restoreButton">Вернуть</button>
+  </div>
 
   <table id="dutyTable">
     <thead>
@@ -132,6 +155,7 @@
     const auth = getAuth(app);
 
     const allowedEmails = ["starrok886@gmail.com", "numartem228@gmail.com"];
+    let originalData = [];
 
     async function getSchedule() {
       const snapshot = await getDocs(collection(db, "schedule"));
@@ -163,7 +187,6 @@
         tr.appendChild(td);
       });
 
-      // Чекбоксы
       ["received", "gave"].forEach(field => {
         const td = document.createElement("td");
         const checkbox = document.createElement("input");
@@ -185,6 +208,7 @@
 
     async function renderTable() {
       const data = await getSchedule();
+      originalData = JSON.parse(JSON.stringify(data));
       const tbody = document.querySelector("#dutyTable tbody");
       tbody.innerHTML = "";
 
@@ -208,9 +232,33 @@
     function signOutUser() {
       signOut(auth).then(() => {
         document.getElementById("userInfo").innerHTML = "";
+        document.getElementById("adminControls").style.display = "none";
         renderTable();
       }).catch(console.error);
     }
+
+    document.getElementById("clearButton").onclick = async () => {
+      if (!auth.currentUser || !allowedEmails.includes(auth.currentUser.email)) return;
+
+      const data = await getSchedule();
+      for (const item of data) {
+        const cleared = { ...item, name: "", group: "", received: false, gave: false };
+        delete cleared.id;
+        await updateSchedule(item.id, cleared);
+      }
+      renderTable();
+    };
+
+    document.getElementById("restoreButton").onclick = async () => {
+      if (!auth.currentUser || !allowedEmails.includes(auth.currentUser.email)) return;
+
+      for (const item of originalData) {
+        const dataToRestore = { ...item };
+        delete dataToRestore.id;
+        await updateSchedule(item.id, dataToRestore);
+      }
+      renderTable();
+    };
 
     onAuthStateChanged(auth, user => {
       if (user) {
@@ -219,6 +267,10 @@
         signOutButton.onclick = signOutUser;
         document.getElementById("userInfo").appendChild(signOutButton);
         renderTable();
+
+        if (allowedEmails.includes(user.email)) {
+          document.getElementById("adminControls").style.display = "block";
+        }
       } else {
         document.getElementById("signInButton").style.display = "block";
       }
