@@ -85,6 +85,9 @@
       font-size: 16px;
     }
   </style>
+
+  <!-- Подключаем библиотеку html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <h1>Расписание дежурств</h1>
@@ -92,7 +95,7 @@
   <div id="userInfo"></div>
 
   <div id="adminControls" style="display: none;">
-    <button id="downloadButton">Скачать таблицу</button>
+    <button id="downloadImageButton">Скачать таблицу как изображение</button>
   </div>
 
   <table id="dutyTable">
@@ -132,7 +135,6 @@
     const auth = getAuth(app);
 
     const allowedEmails = ["starrok886@gmail.com", "numartem228@gmail.com"];
-    let originalData = [];
 
     async function getSchedule() {
       const snapshot = await getDocs(collection(db, "schedule"));
@@ -207,46 +209,13 @@
       }
     };
 
-    document.getElementById("downloadButton").onclick = () => {
-      const table = document.getElementById("dutyTable");
-      const rows = table.rows;
-      const format = navigator.platform.toLowerCase().includes('win') ? 'excel' : 'word'; // Определяем платформу
-
-      if (format === 'excel') {
-        const data = [];
-        for (let i = 1; i < rows.length; i++) { // Начинаем с 1, чтобы пропустить заголовок
-          const row = rows[i];
-          const cells = row.getElementsByTagName("td");
-          const rowData = [];
-          for (let j = 0; j < cells.length; j++) {
-            rowData.push(cells[j].innerText);
-          }
-          data.push(rowData.join("\t"));
-        }
-
-        const blob = new Blob([data.join("\n")], { type: "application/vnd.ms-excel" });
+    document.getElementById("downloadImageButton").onclick = () => {
+      html2canvas(document.getElementById("dutyTable")).then(canvas => {
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "schedule.xlsx";
+        link.href = canvas.toDataURL("image/png");
+        link.download = "duty_schedule.png"; // Имя файла
         link.click();
-      } else if (format === 'word') {
-        const data = [];
-        for (let i = 1; i < rows.length; i++) { // Начинаем с 1, чтобы пропустить заголовок
-          const row = rows[i];
-          const cells = row.getElementsByTagName("td");
-          const rowData = [];
-          for (let j = 0; j < cells.length; j++) {
-            rowData.push(cells[j].innerText);
-          }
-          data.push(`<tr><td>${rowData.join("</td><td>")}</td></tr>`);
-        }
-
-        const blob = new Blob([`<html><body><table>${data.join("")}</table></body></html>`], { type: "application/msword" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "schedule.docx";
-        link.click();
-      }
+      });
     };
 
     onAuthStateChanged(auth, user => {
