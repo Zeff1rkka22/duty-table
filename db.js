@@ -1,8 +1,12 @@
-async function getSchedule() {
-    const snapshot = await db.collection("schedule").get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-}
+import { firestore, auth } from "./config.js";
 
-async function updateSchedule(id, data) {
-    await db.collection("schedule").doc(id).update(data);
+export function addEntry(name) {
+  firestore.collection("schedule").add({
+    user: auth.currentUser ? auth.currentUser.displayName : "Гость",
+    name: name
+  }).then(() => {
+    alert("Запись добавлена!");
+  }).catch((error) => {
+    console.error("Ошибка при добавлении:", error);
+  });
 }
