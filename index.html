@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
   <title>Расписание дежурств</title>
   <style>
     body {
@@ -11,249 +11,60 @@
       background-color: #121212;
       color: white;
     }
-
     table {
+      width: 100%;
       border-collapse: collapse;
-      width: 100%;
       margin-top: 20px;
-      background: #333;
     }
-
     th, td {
-      border: 1px solid #444;
-      padding: 8px;
-      text-align: center;
+      border: 1px solid #555;
+      padding: 10px;
+      text-align: left;
     }
-
     th {
-      background-color: #555;
+      background-color: #333;
     }
-
-    input[type="text"] {
-      width: 100%;
-      border: none;
-      text-align: center;
-      background: transparent;
-      color: white;
+    td {
+      background-color: #222;
     }
-
-    input[type="text"]:focus {
-      background: #444;
-      outline: none;
-    }
-
-    input[type="checkbox"] {
-      transform: scale(1.5);
-      cursor: pointer;
-    }
-
-    #signInButton {
-      margin: 20px 0;
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    #signInButton:hover {
-      background: #0056b3;
-    }
-
-    #adminControls {
-      margin-top: 10px;
-    }
-
-    #adminControls button {
-      margin-right: 10px;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
-      background: #28a745;
-      border: none;
-      color: white;
-    }
-
-    #adminControls button:hover {
-      background: #218838;
-    }
-
-    #footer {
+    button {
       margin-top: 20px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 16px;
+      padding: 10px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #1976D2;
     }
   </style>
-
-  <!-- Подключаем библиотеки для работы с Word -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.3/pizzip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.20.0/docxtemplater.min.js"></script>
 </head>
 <body>
-  <h1>Расписание дежурств</h1>
-  <button id="signInButton">Войти через Google</button>
-  <div id="userInfo"></div>
+  <h1>Список</h1>
 
-  <div id="adminControls" style="display: none;">
-    <button id="downloadWordButton">Скачать таблицу как Word</button>
-  </div>
-
-  <table id="dutyTable">
+  <table>
     <thead>
-      <tr>
-        <th>День</th>
-        <th>ФИО</th>
-        <th>Группа</th>
-        <th>Принял(а)</th>
-        <th>Сдал(а)</th>
-      </tr>
+      <tr id="schedule-table-header"></tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="schedule-table-body"></tbody>
   </table>
 
-  <div id="footer">
-    <span>Командир</span>
-    <span>Р.Р. Старниченко</span>
-  </div>
+  <button id="shareBtn" onclick="copySiteLink()">Поделиться</button>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
-    import { getFirestore, collection, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBcR5RnGuTCMUXuGTbVqdj_1pcJ1n77kTk",
-      authDomain: "duty-table-c6d39.firebaseapp.com",
-      projectId: "duty-table-c6d39",
-      storageBucket: "duty-table-c6d39.appspot.com",
-      messagingSenderId: "903907682283",
-      appId: "1:903907682283:web:7977a2450b47260b3b5bae"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    const allowedEmails = ["starrok886@gmail.com", "numartem228@gmail.com"];
-
-    async function getSchedule() {
-      const snapshot = await getDocs(collection(db, "schedule"));
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    async function updateSchedule(id, data) {
-      const ref = doc(db, "schedule", id);
-      await updateDoc(ref, data);
-    }
-
-    function createRow(docData) {
-      const tr = document.createElement("tr");
-      const fields = ["day", "name", "group"];
-
-      fields.forEach(field => {
-        const td = document.createElement("td");
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = docData[field] || "";
-        input.disabled = !allowedEmails.includes(auth.currentUser?.email);
-
-        input.onchange = () => {
-          docData[field] = input.value;
-          updateSchedule(docData.id, docData);
-        };
-
-        td.appendChild(input);
-        tr.appendChild(td);
-      });
-
-      ["received", "gave"].forEach(field => {
-        const td = document.createElement("td");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = !!docData[field];
-        checkbox.disabled = !allowedEmails.includes(auth.currentUser?.email);
-
-        checkbox.onchange = () => {
-          docData[field] = checkbox.checked;
-          updateSchedule(docData.id, docData);
-        };
-
-        td.appendChild(checkbox);
-        tr.appendChild(td);
-      });
-
-      return tr;
-    }
-
-    async function renderTable() {
-      const data = await getSchedule();
-      const tbody = document.querySelector("#dutyTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(doc => {
-        tbody.appendChild(createRow(doc));
+  <script>
+    function copySiteLink() {
+      navigator.clipboard.writeText(window.location.href).then(function() {
+        alert("Ссылка скопирована!");
+      }, function(err) {
+        alert("Ошибка копирования: " + err);
       });
     }
-
-    document.getElementById("signInButton").onclick = async () => {
-      try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        document.getElementById("userInfo").innerHTML = `Привет, ${user.displayName}!`;
-        if (allowedEmails.includes(user.email)) {
-          document.getElementById("adminControls").style.display = "block";
-        }
-        renderTable();
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    
-    // Функция для скачивания таблицы как Word
-    document.getElementById("downloadWordButton").onclick = async () => {
-      const data = await getSchedule();
-      const rows = data.map(doc => [
-        doc.day,
-        doc.name,
-        doc.group,
-        doc.received ? "✔" : "✘",
-        doc.gave ? "✔" : "✘"
-      ]);
-
-      // Форматируем таблицу в HTML для добавления в Word
-      const docxData = `
-        <table style="width:100%; border: 1px solid #000; border-collapse: collapse; font-family: Arial, sans-serif;">
-          <tr style="background-color: #f2f2f2;">
-            <th style="border: 1px solid #000; padding: 5px;">День</th>
-            <th style="border: 1px solid #000; padding: 5px;">ФИО</th>
-            <th style="border: 1px solid #000; padding: 5px;">Группа</th>
-            <th style="border: 1px solid #000; padding: 5px;">Принял(а)</th>
-            <th style="border: 1px solid #000; padding: 5px;">Сдал(а)</th>
-          </tr>
-          ${rows.map(row => `
-            <tr>
-              <td style="border: 1px solid #000; padding: 5px;">${row[0]}</td>
-              <td style="border: 1px solid #000; padding: 5px;">${row[1]}</td>
-              <td style="border: 1px solid #000; padding: 5px;">${row[2]}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${row[3]}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${row[4]}</td>
-            </tr>
-          `).join('')}
-        </table>
-      `;
-
-      const zip = new PizZip();
-      zip.file("schedule.docx", docxData);
-
-      const docx = new Docxtemplater(zip);
-      const blob = docx.getZip().generate({ type: "blob" });
-
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "schedule.docx";
-      link.click();
-    };
   </script>
+
+  <script type="module" src="./config.js"></script>
+  <script type="module" src="./db.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
