@@ -42,8 +42,12 @@
   </style>
 </head>
 <body>
-  <h1>Список</h1>
+  <h1>Расписание дежурств</h1>
 
+  <!-- Кнопка входа -->
+  <button id="loginBtn">Войти через Google</button>
+
+  <!-- Таблица -->
   <table>
     <thead>
       <tr id="schedule-table-header"></tr>
@@ -51,19 +55,21 @@
     <tbody id="schedule-table-body"></tbody>
   </table>
 
+  <!-- Кнопка поделиться -->
   <button id="shareBtn" onclick="copySiteLink()">Поделиться</button>
 
   <script>
     function copySiteLink() {
-      navigator.clipboard.writeText(window.location.href).then(function() {
+      navigator.clipboard.writeText(window.location.href).then(function () {
         alert("Ссылка скопирована!");
-      }, function(err) {
+      }, function (err) {
         alert("Ошибка копирования: " + err);
       });
     }
   </script>
 
   <script type="module" src="./config.js"></script>
+  <script type="module" src="./auth.js"></script>
   <script type="module" src="./db.js"></script>
   <script type="module" src="./main.js"></script>
 </body>
