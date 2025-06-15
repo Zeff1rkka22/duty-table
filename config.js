@@ -1,4 +1,4 @@
-import firebase from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+
 import "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
