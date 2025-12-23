@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог Аккаунтов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --tg-color: #0088cc;
+            --tt-color: #ff0050;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            background: var(--card-bg);
+            color: white;
+            font-size: 16px;
+            outline: 2px solid transparent;
+            transition: 0.3s;
+            margin-top: 15px;
+        }
+
+        .search-box:focus {
+            outline: 2px solid var(--tg-color);
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .user-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .user-nick {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+            color: #f1f5f9;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.8; }
+        .btn-tg { background-color: var(--tg-color); }
+        .btn-tt { background-color: #000; border: 1px solid #fff; }
+        .btn-tt i { color: var(--tt-color); }
+
+        #no-results {
+            text-align: center;
+            display: none;
+            grid-column: 1 / -1;
+            margin-top: 50px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Список участников</h1>
+        <input type="text" id="searchInput" class="search-box" placeholder="Поиск по никнейму...">
+    </div>
+
+    <div class="users-grid" id="userContainer">
+        <div id="no-results">Никого не нашли по этому запросу :(</div>
+    </div>
+
+    <script>
+        const users = [
+            { nick: "Refd", tg: "https://t.me/refd24", tt: "https://www.tiktok.com/@refd_203?_r=1&_t=ZS-92SxpwW3WZm" },
+            { nick: "Пенёк", tg: "https://t.me/so_pein", tt: "https://www.tiktok.com/@_aki_071?_r=1&_t=ZM-92SxlCTr14e" },
+            { nick: "Deutsch Kitsune", tg: "https://t.me/Less_v_kotorom", tt: "https://www.tiktok.com/@combat_fox?_r=1&_t=ZM-92SxXXLmH9f" },
+            { nick: "Локи", tg: "https://t.me/assgardl", tt: "https://www.tiktok.com/@monsterror" },
+            { nick: "AlexGhost", tg: "#", tt: "https://www.tiktok.com/@__alexghost__?_r=1&_t=ZS-92SxXTArpsQ" },
+            { nick: "Revys" , tg: "https://t.me/revysrottens", tt: "https://www.tiktok.com/@tnrevys"},
+            { nick: "Callsign Schatz" , tg: "https://t.me/sschatz_z", tt: "https://www.tiktok.com/@_schatz__q?_r=1&_t=ZM-92SxqWnHkYy"},
+            { nick: "Shark" , tg: "https://t.me/sharkihome", tt: "https://www.tiktok.com/@shark_405"},
+            { nick: "Ahri_the_kitsune" , tg: "https://t.me/bebra_22852", tt: "https://www.tiktok.com/@ahrian_malfoy?_r=1&_t=ZS-92SxXU6UTXk"},
+            { nick: "Дей" , tg: "https://t.me/so_pein", tt: "https://www.tiktok.com/@deidara_tcukuri73?_r=1&_t=ZM-92Sxw1sK01j"},
+            { nick: "Кактус" , tg: "https://t.me/+Bg63IkC8tXdiNmIy", tt: "https://www.tiktok.com/@kaktus_angel?_r=1&_t=ZS-92SyN42DWMy"},
+            { nick: "kitecat" , tg: "https://t.me/kitecattty", tt: "https://www.tiktok.com/@kitecat6?_r=1&_t=ZM-92SyKJ5Sx8W"},
+            { nick: "Mommy Ghost" , tg: "https://t.me/konigsnow", tt: "https://www.tiktok.com/@satanfox666"},
+            { nick: "Your Konig / Lt.Death" , tg: "https://t.me/ltdeath", tt: "https://www.tiktok.com/@yoourkonigg?_r=1&_t=ZS-92SyaC9UERb"},
+            { nick: "Kiwi" , tg: "#", tt: "https://www.tiktok.com/@kiwichuuvu?_r=1&_t=ZM-921ywupWs28"}
+        ];
+
+
+        const container = document.getElementById('userContainer');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('no-results');
+
+        function renderUsers(filter = '') {
+            container.innerHTML = ''; 
+            container.appendChild(noResults); 
+
+            const filtered = users.filter(user => 
+                user.nick.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+                filtered.forEach(user => {
+                    const card = document.createElement('div');
+                    card.className = 'user-card';
+                    card.innerHTML = `
+                        <span class="user-nick">${user.nick}</span>
+                        <div class="btn-group">
+                            <a href="${user.tg || '#'}" target="_blank" class="btn btn-tg">
+                                <i class="fab fa-telegram-plane"></i> ТГК
+                            </a>
+                            <a href="${user.tt || '#'}" target="_blank" class="btn btn-tt">
+                                <i class="fab fa-tiktok"></i> TikTok
+                            </a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            renderUsers(e.target.value);
+        });
+
+        renderUsers();
+    </script>
+</body>
+</html>
